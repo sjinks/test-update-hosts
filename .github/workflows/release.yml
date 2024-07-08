@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '**'
+
+permissions:
+  contents: read
+
+jobs:
+  prepare_release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push container image
+        uses: docker/build-push-action@v6
+        id: push
+        with:
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=local,dest=out
+
+      - name: Compress artifacts
+        run: for i in dev-env-update-hosts-*; do gzip -9 $i; done
+        working-directory: out
+
+      - name: Attest build provenance
+        id: attest
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            out/dev-env-update-hosts-*
+
+      - name: Generate provenance file
+        run: |
+          jq .dsseEnvelope "${{ steps.attest.outputs.bundle-path }}" > out/dev-env-update-hosts.intoto.jsonl
+
+      - name: Create a release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            out/*.gz
+            out/dev-env-update-hosts.intoto.jsonl
