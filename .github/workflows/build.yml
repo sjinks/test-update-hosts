@@ -1,0 +1,33 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push container image
+        uses: docker/build-push-action@v6
+        id: push
+        with:
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=local,dest=out
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: out
