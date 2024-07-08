@@ -1,5 +1,6 @@
 #if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
+#include <sys/utsname.h>
 #endif // defined(__linux__) || defined(__APPLE__)
 
 #include <stdio.h>
@@ -54,7 +55,32 @@ static char* my_strdup(const char* s)
     return p;
 }
 
-#if defined __linux__ || defined __APPLE__
+#if defined(__linux__) || defined(__APPLE__)
+
+static bool has_dbus()
+{
+#if defined(__APPLE__)
+    return false;
+#else
+    const char* bus_address = getenv("DBUS_SESSION_BUS_ADDRESS");
+    return bus_address && *bus_address;
+#endif // defined(__APPLE__)
+}
+
+static bool is_wsl()
+{
+#if defined(__APPLE__)
+    return false;
+#else
+    struct utsname uts;
+    if (uname(&uts) == -1) {
+        perror("Error getting system information");
+        return false;
+    }
+
+    return strstr(uts.release, "Microsoft");
+#endif // defined(__APPLE__)
+}
 
 static char* find_executable(const char* name)
 {
@@ -164,7 +190,15 @@ static char* get_hosts_file_path()
 static int escalate_privilege(int argc, char** argv) {
 #if defined(__linux__) || defined(__APPLE__)
     if (geteuid() != 0) {
-        char* elevator = find_executable("pkexec") ?: find_executable("sudo");
+        char* elevator = NULL;
+        if (has_dbus() && !is_wsl()) {
+            elevator = find_executable("pkexec");
+        }
+
+        if (!elevator) {
+            elevator = find_executable("sudo");
+        }
+
         if (!elevator) {
             fputs("Error: No suitable privilege escalation tool found\n", stderr);
             return EXIT_FAILURE;
