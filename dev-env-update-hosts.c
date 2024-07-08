@@ -12,9 +12,15 @@
 
 static int update_hosts(const char* fname, const char** domain, size_t ndomains)
 {
-    FILE* hosts = fopen(fname, "a");
+    FILE* hosts = fopen(fname, "r+");
     if (!hosts) {
         perror("Error opening hosts file");
+        return EXIT_FAILURE;
+    }
+
+    if (-1 == fseek(hosts, 0, SEEK_END)) {
+        perror("Error seeking to end of hosts file");
+        fclose(hosts);
         return EXIT_FAILURE;
     }
 
