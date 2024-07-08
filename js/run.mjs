@@ -14,7 +14,7 @@ const archMap = {
 
 const platformMap = {
     win32: 'windows',
-    darwin: 'sarwin',
+    darwin: 'darwin',
     linux: 'linux',
 };
 
