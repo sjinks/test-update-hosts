@@ -16,21 +16,21 @@ COPY . .
 
 RUN mkdir -p output
 
-RUN TARGETPLATFORM=linux/amd64   xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-linux-amd64 dev-env-update-hosts.c
-RUN TARGETPLATFORM=linux/386     xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-linux-386 dev-env-update-hosts.c
-RUN TARGETPLATFORM=linux/arm64   xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-linux-arm64 dev-env-update-hosts.c
-RUN TARGETPLATFORM=darwin/arm64  xx-clang -Wall -O2 -o output/dev-env-update-hosts-darwin-arm64 dev-env-update-hosts.c
-RUN TARGETPLATFORM=darwin/amd64  xx-clang -Wall -O2 -o output/dev-env-update-hosts-darwin-amd64 dev-env-update-hosts.c
+RUN TARGETPLATFORM=linux/amd64   xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-linux-amd64 cc/dev-env-update-hosts.c
+RUN TARGETPLATFORM=linux/386     xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-linux-386 cc/dev-env-update-hosts.c
+RUN TARGETPLATFORM=linux/arm64   xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-linux-arm64 cc/dev-env-update-hosts.c
+RUN TARGETPLATFORM=darwin/arm64  xx-clang -Wall -O2 -o output/dev-env-update-hosts-darwin-arm64 cc/dev-env-update-hosts.c
+RUN TARGETPLATFORM=darwin/amd64  xx-clang -Wall -O2 -o output/dev-env-update-hosts-darwin-amd64 cc/dev-env-update-hosts.c
 
 RUN \
     export TARGETPLATFORM=windows/amd64; \
-    x86_64-w64-mingw32-windres --input dev-env-update-hosts.rc --output dev-env-update-hosts.res --output-format=coff; \
-    xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-windows-amd64.exe dev-env-update-hosts.c dev-env-update-hosts.res
+    x86_64-w64-mingw32-windres --input cc/dev-env-update-hosts.rc --output dev-env-update-hosts.res --output-format=coff; \
+    xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-windows-amd64.exe cc/dev-env-update-hosts.c dev-env-update-hosts.res
 
 RUN \
     export TARGETPLATFORM=windows/386; \
-    i686-w64-mingw32-windres --input dev-env-update-hosts.rc --output dev-env-update-hosts.res --output-format=coff; \
-    xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-windows-386.exe dev-env-update-hosts.c dev-env-update-hosts.res
+    i686-w64-mingw32-windres --input cc/dev-env-update-hosts.rc --output dev-env-update-hosts.res --output-format=coff; \
+    xx-clang -Wall -O2 -static -o output/dev-env-update-hosts-windows-386.exe cc/dev-env-update-hosts.c dev-env-update-hosts.res
 
 FROM scratch
 

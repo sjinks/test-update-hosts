@@ -1,5 +1,3 @@
-#define __STDC_WANT_LIB_EXT1__ 1
-
 #if defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
 #endif // defined(__linux__) || defined(__APPLE__)

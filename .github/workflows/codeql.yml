@@ -36,7 +36,7 @@ jobs:
 
       - name: Build
         if: matrix.build-mode == 'manual'
-        run: clang -Wall -O2 -o dev-env-update-hosts dev-env-update-hosts.c
+        run: clang -Wall -O2 -o dev-env-update-hosts cc/dev-env-update-hosts.c
       
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

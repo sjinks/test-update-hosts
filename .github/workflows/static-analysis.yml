@@ -33,7 +33,7 @@ jobs:
       - name: Run analysis
         run: |
           scan-build -sarif --status-bugs -no-failure-reports -o "${SCANBUILD_DIR}" \
-            clang -Wall -O2 -o dev-env-update-hosts dev-env-update-hosts.c
+            clang -Wall -O2 -o dev-env-update-hosts cc/dev-env-update-hosts.c
         continue-on-error: true
         id: scanbuild
 
