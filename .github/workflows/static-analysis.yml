@@ -1,0 +1,61 @@
+name: Static Code Analysis
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: none
+
+jobs:
+  scan-build:
+    name: Run Clang Analyzer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    env:
+      CC: clang
+      CCC_CC: clang
+      SCANBUILD_DIR: /tmp/scanbuild
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Install clang-tools
+        run: sudo apt-get update && sudo apt-get install -y clang-tools
+
+      - name: Run analysis
+        run: |
+          scan-build -sarif --status-bugs -no-failure-reports -o "${SCANBUILD_DIR}" \
+            clang -Wall -O2 -o dev-env-update-hosts dev-env-update-hosts.c
+        continue-on-error: true
+        id: scanbuild
+
+      - name: Merge reports
+        run: |
+          pip install sarif-tools
+          sarif copy --output /tmp/merged.sarif "${SCANBUILD_DIR}/**/*.sarif"
+          jq 'del(.runs[].conversion)' /tmp/merged.sarif > /tmp/scan-build.sarif
+          if [ $(jq '[.runs[].results | length] | add' /tmp/scan-build.sarif) -gt 0 ]; then
+            exit 1
+          fi
+          exit 0
+        id: merge
+        continue-on-error: true
+
+      - name: Upload scan results
+        uses: github/codeql-action/upload-sarif@b611370bb5703a7efb587f9d136a52ea24c5c38c # v3.25.11
+        with:
+          sarif_file: /tmp/scan-build.sarif
+          category: scanbuild
+        continue-on-error: true
+
+      - name: Set exit code
+        run: exit 1
+        if: steps.scanbuild.outcome == 'failure' || steps.merge.outcome == 'failure'
